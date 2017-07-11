@@ -3,6 +3,7 @@
 // @namespace     danibaena
 // @description   Just a simple script to sum all items and prices in an Amazon.es' Wishlist url
 // @include       http://www.amazon.es/gp/registry/wishlist/*
+// @include       https://www.amazon.es/gp/registry/wishlist/*
 // @require       http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js
 // @grant         none
 // ==/UserScript==
@@ -40,23 +41,24 @@ scriptList.setAttribute("id", "scriptList");
 productsList.appendChild(scriptList);
 
 var list = document.getElementById("scriptList");
-list.style.float = 'right';
-list.style.border = '1px solid #DDD';
-list.style.padding = '14px 18px';
-list.style.textAlign = 'right';
+list.style.display = 'flex';
+list.style.justifyContent = 'center';
+list.style.borderTop = '1px solid #DDD';
+list.style.paddingTop = '22px';
+list.style.textAlign = 'center';
 
-var paginationID = "wishlistPagination"
+var paginationID = "wishlistPagination";
 var pages = document.getElementById(paginationID);
 var page;
 
 
 if(pages !== null){
-	page = "Datos para esta página de la lista:<br>";
+    page = "Datos para esta página de la lista:<br>";
 } else {
-	page = "Datos de la lista:<br>";
+    page = "Datos de la lista:<br>";
 }
 list.innerHTML = page +
-				 "Artículos totales: "        + itemCounter             + "<br>" +
-				 "Artículos no disponibles: " + itemNotAvailableCounter + "<br>" +
-				 "Coste total: "              + itemSum                 + " EUR<br>" +
-				 "Coste total con COINC: "    + itemSumCoinc            + " EUR";
+         "Artículos totales: "        + itemCounter             + "<br>" +
+         "Artículos no disponibles: " + itemNotAvailableCounter + "<br>" +
+         "Coste total: "              + itemSum                 + " EUR<br>" +
+         "Coste total con COINC: "    + itemSumCoinc            + " EUR";
