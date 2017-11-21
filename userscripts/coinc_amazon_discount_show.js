@@ -31,7 +31,7 @@ function addCoincPrice() {
     var coincPrice        = (res/1.04).toFixed(2).toString().replace(".",",").replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
     var coincPriceMessage = `
         <tr id="coincMessage">
-            <td id="priceblock_coincprice_lbl" class="a-color-secondary a-size-base a-text-right a-nowrap">Coinc:</td>            
+            <td id="priceblock_coincprice_lbl" class="a-color-secondary a-size-base a-text-right a-nowrap">Coinc:</td>
             <td><span class="a-size-medium a-color-price" id="coinc_price">EUR ${coincPrice}</span></td>
         </tr>
     `;
