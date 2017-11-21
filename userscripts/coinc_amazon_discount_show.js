@@ -4,13 +4,12 @@
 // @description   Script to add Coinc Discount Price next to the original price
 // @include       http://www.amazon.es/*
 // @include       https://www.amazon.es/*
-// @require       http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js
+// @require       https://code.jquery.com/jquery-3.2.1.slim.min.js
 // @require       https://gist.github.com/raw/2625891/waitForKeyElements.js
 // @grant         none
 // ==/UserScript==
 
 function addCoincPrice() {
-    var parser = new DOMParser();
     var itemPriceIds = [
         "priceblock_ourprice",
         "priceblock_dealprice",
@@ -22,21 +21,22 @@ function addCoincPrice() {
     }).filter(function(item) {
         return ((item !== null) && (item.innerHTML !== "No disponible.") && (item.innerHTML.indexOf("-") === -1));
     }).reduce(function(previousValue, currentValue) {
-        if(previousValue !== null) {
-            return (getPrice(previousValue) < getPrice(currentValue)) ? previousValue : currentValue;
-        } else {
+        if(!previousValue) {
             return currentValue;
         }
+        return (getPrice(previousValue) < getPrice(currentValue)) ? previousValue : currentValue;
     });
 
-    var res = getPrice(itemPrice);
-    var coincPrice = (res/1.04).toFixed(2).toString().replace(".",",").replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
+    var res               = getPrice(itemPrice);
+    var coincPrice        = (res/1.04).toFixed(2).toString().replace(".",",").replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
+    var coincPriceMessage = `
+        <tr id="coincMessage">
+            <td id="priceblock_coincprice_lbl" class="a-color-secondary a-size-base a-text-right a-nowrap">Coinc:</td>            
+            <td><span class="a-size-medium a-color-price" id="coinc_price">EUR ${coincPrice}</span></td>
+        </tr>
+    `;
 
-    var coincPriceTextSpan = '<span class="a-color-secondary a-size-base a-text-left" style="vertical-align: top; padding: 6px;">Precio Coinc:</span>';
-    var coincPriceSpan = '<span class="a-size-medium a-color-price" id="coinc_price">EUR ' + coincPrice + '</span>';
-
-    $(itemPrice).append(coincPriceTextSpan);
-    $(itemPrice).append(coincPriceSpan);
+    $(coincPriceMessage).insertBefore('#vatMessage');
 }
 
 function getPrice(itemPrice) {
