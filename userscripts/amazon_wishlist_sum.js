@@ -6,6 +6,8 @@
 // @include       https://www.amazon.es/gp/registry/wishlist/*
 // @include       https://www.amazon.es/hz/wishlist/ls/*
 // @include       http://www.amazon.es/hz/wishlist/ls/*
+// @include       http://www.amazon.es/gp/aw/ls/*
+// @include       https://www.amazon.es/gp/aw/ls/*
 // @require       https://code.jquery.com/jquery-3.2.1.slim.min.js
 // @require       https://gist.github.com/raw/2625891/waitForKeyElements.js
 // @grant         none
