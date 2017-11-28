@@ -14,7 +14,7 @@
 // ==/UserScript==
 
 function addItemPricesSum() {
-    var itemsList               = $(".g-item-sortable[data-id]").length ? $(".g-item-sortable[data-id]") : $(".awl-item-wrapper[data-price]") ;
+    var itemsList               = !isMobile() ? $(".g-item-sortable[data-id]") : $(".awl-item-wrapper[data-price]") ;
     var priceClass              = "a-price-whole";
     var paginationID            = "wishlistPagination";
     var pages                   = document.getElementById(paginationID);
@@ -60,10 +60,9 @@ function addItemPricesSum() {
     `;
 
     var ruleDivider = '<hr class="a-divider-normal awl-divider" id="scriptlist-divider">';
-    ruleDivider     = isMobile() ? ruleDivider : '';
 
     var scriptList = `
-        ${ruleDivider}
+        ${isMobile() ? ruleDivider : ''}
         <div class="a-price ${priceClass}" data-a-size="m" data-a-color="base" id="scriptlist">
             ${textList}
         </div>
@@ -119,5 +118,6 @@ var scriptListStyles = `
 
 $(scriptListStyles).appendTo('head');
 
-var elementToWait = $(".g-item-sortable[data-id]").length ? ".g-item-sortable[data-id]" : ".awl-item-wrapper[data-price]";
+var elementToWait = !isMobile() ? ".g-item-sortable[data-id]" : ".awl-item-wrapper[data-price]";
 waitForKeyElements (elementToWait, addItemPricesSum, false);
+waitForKeyElements ('#endOfListMarker', addItemPricesSum, false);
