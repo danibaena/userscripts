@@ -1,19 +1,21 @@
 // ==UserScript==
 // @name         Sesame Better Time UI
-// @namespace    http://tampermonkey.net/
-// @version      0.1
+// @namespace    https://github.com/danibaena/userscripts/blob/master/userscripts/sesame_better_time_ui.js
+// @version      1.0
 // @description  Show elapsed time per week and other handy metrics
 // @author       danibaena
-// @include      https://panel.sesametime.com/admin/users/checks*
+// @include      https://panel.sesametime.com/admin/users/checks/*
 // @grant        none
+// @downloadURL  https://raw.githubusercontent.com/danibaena/userscripts/master/userscripts/sesame_better_time_ui.js
+// @updateUrl    https://raw.githubusercontent.com/danibaena/userscripts/master/userscripts/sesame_better_time_ui.js
 // ==/UserScript==
 
 (function() {
     'use strict';
 
     const formatMinutesForOutputString = unformattedMinutesInt => {
-        const hourTimeString = Math.floor(unformattedMinutesInt/60).toString();
-        const minutesTimeString = (unformattedMinutesInt%60).toString().padStart(2, 0);
+        const hourTimeString = Math.floor(unformattedMinutesInt / 60).toString();
+        const minutesTimeString = (unformattedMinutesInt % 60).toString().padStart(2, 0);
         return `${hourTimeString}:${minutesTimeString}`
     }
 
@@ -88,8 +90,7 @@
             dailyCheckingsByWeek[weekNumber] = {}
         }
         dailyCheckingsByWeek[weekNumber][weekDay] = checkingTime
-
-        if((weekDay === 'viernes' && !isCurrentWorkingWeek(checkingDayDate)) || moment(checkingDayDate).isSame(lastDayOfMonth, 'day')) {
+        if(weekDay === 'viernes' || moment(checkingDayDate).isSame(lastDayOfMonth, 'day')) {
             const workedWeekMinutes = totalWeekWorkMinutes(dailyCheckingsByWeek[weekNumber])
             const expectedWorkMinutes = expectedTotalWorkMinutes(dailyCheckingsByWeek[weekNumber])
             dailyCheckingsByWeek[weekNumber]['workedWeekMinutes'] = workedWeekMinutes
@@ -98,11 +99,9 @@
             dailyCheckingsByWeek[weekNumber]['last_work_weekday_selector'] = $(this)
             weekNumber++
         }
-
         if(isCurrentWorkingWeek(checkingDayDate) && isCurrentWorkingDay(checkingDayDate)) {
             const workedWeekMinutes = totalWeekWorkMinutes(dailyCheckingsByWeek[weekNumber])
             const expectedWorkMinutes = expectedTotalWorkMinutes(dailyCheckingsByWeek[weekNumber])
-
             dailyCheckingsByWeek[weekNumber]['workedWeekMinutes'] = workedWeekMinutes
             dailyCheckingsByWeek[weekNumber]['expectedWorkMinutes'] = expectedWorkMinutes
             dailyCheckingsByWeek[weekNumber]['currentMissingWorkMinutes'] = expectedWorkMinutes - workedWeekMinutes
