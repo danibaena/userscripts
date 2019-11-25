@@ -29,7 +29,6 @@ function addDiscountPrice() {
     });
 
     var itemPrice            = getPrice(itemPriceElement);
-    //var discountPrice        = (res*discount).toFixed(2).toString().replace(".",",").replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
     var discountPrice        = calculateDiscountPrice(itemPrice, discount)
     var discountPriceMessage = `
         <tr id="discountMessage">
