@@ -4,7 +4,7 @@
 // @version      1.0
 // @description  Show elapsed time per week and other handy metrics
 // @author       danibaena
-// @include      https://panel.sesametime.com/admin/users/checks/*
+// @include      https://panel.sesametime.com/admin/users/checks*
 // @grant        none
 // @downloadURL  https://raw.githubusercontent.com/danibaena/userscripts/master/userscripts/sesame_better_time_ui.js
 // @updateUrl    https://raw.githubusercontent.com/danibaena/userscripts/master/userscripts/sesame_better_time_ui.js
@@ -90,7 +90,7 @@
             dailyCheckingsByWeek[weekNumber] = {}
         }
         dailyCheckingsByWeek[weekNumber][weekDay] = checkingTime
-        if(weekDay === 'viernes' || moment(checkingDayDate).isSame(lastDayOfMonth, 'day')) {
+        if((weekDay === 'viernes' || moment(checkingDayDate).isSame(lastDayOfMonth, 'day')) && !isCurrentWorkingDay(checkingDayDate)) {
             const workedWeekMinutes = totalWeekWorkMinutes(dailyCheckingsByWeek[weekNumber])
             const expectedWorkMinutes = expectedTotalWorkMinutes(dailyCheckingsByWeek[weekNumber])
             dailyCheckingsByWeek[weekNumber]['workedWeekMinutes'] = workedWeekMinutes
@@ -99,6 +99,7 @@
             dailyCheckingsByWeek[weekNumber]['last_work_weekday_selector'] = $(this)
             weekNumber++
         }
+
         if(isCurrentWorkingWeek(checkingDayDate) && isCurrentWorkingDay(checkingDayDate)) {
             const workedWeekMinutes = totalWeekWorkMinutes(dailyCheckingsByWeek[weekNumber])
             const expectedWorkMinutes = expectedTotalWorkMinutes(dailyCheckingsByWeek[weekNumber])
