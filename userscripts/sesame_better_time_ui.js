@@ -1,21 +1,19 @@
 // ==UserScript==
 // @name         Sesame Better Time UI
-// @namespace    https://github.com/danibaena/userscripts/blob/master/userscripts/sesame_better_time_ui.js
-// @version      1.0
+// @namespace    http://tampermonkey.net/
+// @version      0.1
 // @description  Show elapsed time per week and other handy metrics
 // @author       danibaena
 // @include      https://panel.sesametime.com/admin/users/checks*
 // @grant        none
-// @downloadURL  https://raw.githubusercontent.com/danibaena/userscripts/master/userscripts/sesame_better_time_ui.js
-// @updateUrl    https://raw.githubusercontent.com/danibaena/userscripts/master/userscripts/sesame_better_time_ui.js
 // ==/UserScript==
 
 (function() {
     'use strict';
 
     const formatMinutesForOutputString = unformattedMinutesInt => {
-        const hourTimeString = Math.floor(unformattedMinutesInt / 60).toString();
-        const minutesTimeString = (unformattedMinutesInt % 60).toString().padStart(2, 0);
+        const hourTimeString = Math.floor(unformattedMinutesInt/60).toString();
+        const minutesTimeString = (unformattedMinutesInt%60).toString().padStart(2, 0);
         return `${hourTimeString}:${minutesTimeString}`
     }
 
@@ -39,9 +37,15 @@
                                     'miércoles': 525,
                                     'jueves': 525,
                                     'viernes': 360};
+    /* Change the minutes to fit your week work hours (i.e. reduced workweek) */
+    //const regularWeekDaysMinutes = {'lunes': 420,
+      //                              'martes': 420,
+        //                            'miércoles': 420,
+          //                          'jueves': 420,
+            //                        'viernes': 420};
 
     const expectedTotalWorkMinutes = weeklyCheckings => {
-        const allowedDays = Object.keys(weeklyCheckings)
+        const allowedDays = Object.keys(weeklyCheckings['weekdays'])
         const expectedWorkMinutes = Object.keys(regularWeekDaysMinutes).filter(key => allowedDays.includes(key)).reduce((obj, key) => {
             obj[key] = regularWeekDaysMinutes[key];
             return obj;
@@ -65,46 +69,88 @@
             content = `${content} este mes`
         }
         const sesameLogo = '<img src="https://panel.sesametime.com/img/green-icon.png" width=20>';
-        return `<li class="margin-top-10 text-right"><strong>${content}</strong> ${missingWorkMinutes ? '' : sesameLogo}</li>`
+        return `<p class="margin-top-10 text-right"><strong>${content}</strong> ${missingWorkMinutes ? '' : sesameLogo}</p>`
     }
 
-    const isCurrentWorkingWeek = checkingDayDate => moment().isSame(checkingDayDate, 'week')
-    const isCurrentWorkingDay = checkingDayDate => moment().isSame(checkingDayDate, 'day')
+    const isCurrentWorkingWeek = checkingDayDate => {
+        const currentDate = new Date()
+        const currentMoment = moment(currentDate)
+        currentMoment.isSame(checkingDayDate, 'week')
+    }
+    const isCurrentWorkingDay = checkingDayDate => {
+        const currentDate = new Date()
+        const currentMoment = moment(currentDate)
+        currentMoment.isSame(checkingDayDate, 'day')
+    }
 
     const regularTotalWeekWorkHours = totalWeekWorkMinutes(regularWeekDaysMinutes)
     let weekNumber = 1
     let dailyCheckingsByWeek = {}
 
     const lastDayOfMonth = moment().endOf('month');
-    const checkingTimes = $('.checks-text:not(.red-text)');
 
-    const checkingDays = checkingTimes.parent('.bar').prev().each(function(index) {
-        const weekDayText = $(this).text().split(', ')
+    let filteredDays = $('.ssm-checks-list-days').find('.bar:not(.holiday)').filter((index, element) => {
+        const $element = $(element)
+        const weekDayText = $element.prev('li.margin-top-10').text()
+        if(weekDayText.includes('sábado') || weekDayText.includes('domingo')) {
+            return false}
+        return true
+    }).filter((index, element) => {
+        if($(element).find('.checks-text:not(.red-text)').length) {
+            return true
+        }
+        return false
+    })
+    .map((index, element) => {
+        const check = $(element).find('.checks-text')
+        return check[0]
+    })
+
+    const checkingDays = filteredDays.each(function(index) {
+        const weekDayText = $(this).parent().prev('li.margin-top-10').text().split(', ')
         const weekDay = weekDayText[0]
         const checkingDayDate = moment(weekDayText[1], 'DD de MMM');
-        const checkingTimeElement = $(checkingTimes[index])
+
+        const checkingTimeElement = $(filteredDays[index])
         const checkingTimeString = checkingTimeElement.text().split('Horas registradas ')[1]
         const checkingTime = parseMinutesFromInputString(checkingTimeString)
-
         if(!(weekNumber in dailyCheckingsByWeek)) {
             dailyCheckingsByWeek[weekNumber] = {}
+            dailyCheckingsByWeek[weekNumber]['weekdays'] = {}
         }
-        dailyCheckingsByWeek[weekNumber][weekDay] = checkingTime
-        if((weekDay === 'viernes' || moment(checkingDayDate).isSame(lastDayOfMonth, 'day')) && !isCurrentWorkingDay(checkingDayDate)) {
-            const workedWeekMinutes = totalWeekWorkMinutes(dailyCheckingsByWeek[weekNumber])
-            const expectedWorkMinutes = expectedTotalWorkMinutes(dailyCheckingsByWeek[weekNumber])
-            dailyCheckingsByWeek[weekNumber]['workedWeekMinutes'] = workedWeekMinutes
-            dailyCheckingsByWeek[weekNumber]['expectedWorkMinutes'] = expectedWorkMinutes
+        dailyCheckingsByWeek[weekNumber]['weekdays'][weekDay] = checkingTime
+        const workedWeekMinutes = totalWeekWorkMinutes(dailyCheckingsByWeek[weekNumber])
+        const expectedWorkMinutes = expectedTotalWorkMinutes(dailyCheckingsByWeek[weekNumber])
+        dailyCheckingsByWeek[weekNumber]['workedWeekMinutes'] = workedWeekMinutes
+        dailyCheckingsByWeek[weekNumber]['expectedWorkMinutes'] = expectedWorkMinutes
+
+        if(!isCurrentWorkingWeek(checkingDayDate)) {
+            if(weekDay === 'viernes') {
+                dailyCheckingsByWeek[weekNumber]['missingWorkMinutes'] = expectedWorkMinutes - workedWeekMinutes
+                dailyCheckingsByWeek[weekNumber]['last_work_weekday_selector'] = $(this)
+                weekNumber++
+            } else {
+                const nextFilteredDay = filteredDays[index + 1]
+                if(nextFilteredDay) {
+                    const nextWeekDayText = $(nextFilteredDay).parent().prev('li.margin-top-10').text().split(', ')
+                    if(nextWeekDayText[0] !== 'viernes') {
+                        const checkingNextDayDate = moment(nextWeekDayText[1], 'DD de MMM');
+                        if(!checkingDayDate.isSame(checkingNextDayDate, 'week')) {
+                            dailyCheckingsByWeek[weekNumber]['missingWorkMinutes'] = expectedWorkMinutes - workedWeekMinutes
+                            dailyCheckingsByWeek[weekNumber]['last_work_weekday_selector'] = $(this)
+                            weekNumber++
+                        }
+                   }
+                }
+            }
+        }
+
+        if(moment(checkingDayDate).isSame(lastDayOfMonth, 'day')) {
             dailyCheckingsByWeek[weekNumber]['missingWorkMinutes'] = expectedWorkMinutes - workedWeekMinutes
             dailyCheckingsByWeek[weekNumber]['last_work_weekday_selector'] = $(this)
-            weekNumber++
         }
 
         if(isCurrentWorkingWeek(checkingDayDate) && isCurrentWorkingDay(checkingDayDate)) {
-            const workedWeekMinutes = totalWeekWorkMinutes(dailyCheckingsByWeek[weekNumber])
-            const expectedWorkMinutes = expectedTotalWorkMinutes(dailyCheckingsByWeek[weekNumber])
-            dailyCheckingsByWeek[weekNumber]['workedWeekMinutes'] = workedWeekMinutes
-            dailyCheckingsByWeek[weekNumber]['expectedWorkMinutes'] = expectedWorkMinutes
             dailyCheckingsByWeek[weekNumber]['currentMissingWorkMinutes'] = expectedWorkMinutes - workedWeekMinutes
             dailyCheckingsByWeek[weekNumber]['current_work_weekday_selector'] = $(this)
         }
@@ -115,16 +161,17 @@
         if(dailyCheckings.missingWorkMinutes || dailyCheckings.missingWorkMinutes === 0) {
             missingWorkingMinutes += dailyCheckings.missingWorkMinutes;
         }
-        if(dailyCheckings.last_work_weekday_selector) {
-            const nextBar = dailyCheckings.last_work_weekday_selector.next('.bar')
+        if(dailyCheckings.last_work_weekday_selector && dailyCheckings.current_work_weekday_selector != dailyCheckings.last_work_weekday_selector) {
+            const nextBar = dailyCheckings.last_work_weekday_selector.parent()
             nextBar.after(buildSummary(dailyCheckings.missingWorkMinutes))
         }
         if(dailyCheckings.current_work_weekday_selector) {
-            const nextBar = dailyCheckings.current_work_weekday_selector.next('.bar')
+            const nextBar = dailyCheckings.current_work_weekday_selector.parent()
             nextBar.after(buildSummary(dailyCheckings.currentMissingWorkMinutes + missingWorkingMinutes, false, true))
             missingWorkingMinutes = 0
         }
     }
+
     const isMonthly = true
     const accumulatedTimeStats = $('.ssm-content-title > small').text().split(' / ')
     const isMonthlyAccumulatedTimeStats = accumulatedTimeStats[0] === accumulatedTimeStats[1]
@@ -132,5 +179,5 @@
     if(isMonthlyAccumulatedTimeStats){
         missingWorkingMinutes = 0
     }
-    $('.ssm-checks-list-days > ul').last().after(buildSummary(missingWorkingMinutes, isMonthly))
+    $('.ssm-checks-list-days').after(buildSummary(missingWorkingMinutes, isMonthly))
 })();
