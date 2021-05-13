@@ -10,6 +10,7 @@
 
 (function() {
     'use strict';
+    moment.locale('es')
 
     const formatMinutesForOutputString = unformattedMinutesInt => {
         const hourTimeString = Math.floor(unformattedMinutesInt/60).toString();
@@ -37,12 +38,12 @@
                                     'miércoles': 525,
                                     'jueves': 525,
                                     'viernes': 360};
-    /* Change the minutes to fit your week work hours (i.e. reduced workweek) */
+    /* Change the minutes to fit your week work hours (i.e. reduced workweek, 7h = 420m, 6h = 360m) */
     //const regularWeekDaysMinutes = {'lunes': 420,
-      //                              'martes': 420,
-        //                            'miércoles': 420,
-          //                          'jueves': 420,
-            //                        'viernes': 420};
+    //                                'martes': 420,
+    //                                'miércoles': 420,
+    //                                'jueves': 420,
+    //                                'viernes': 420};
 
     const expectedTotalWorkMinutes = weeklyCheckings => {
         const allowedDays = Object.keys(weeklyCheckings['weekdays'])
@@ -75,12 +76,12 @@
     const isCurrentWorkingWeek = checkingDayDate => {
         const currentDate = new Date()
         const currentMoment = moment(currentDate)
-        currentMoment.isSame(checkingDayDate, 'week')
+        return currentMoment.isSame(checkingDayDate, 'week')
     }
     const isCurrentWorkingDay = checkingDayDate => {
         const currentDate = new Date()
         const currentMoment = moment(currentDate)
-        currentMoment.isSame(checkingDayDate, 'day')
+        return currentMoment.isSame(checkingDayDate, 'day')
     }
 
     const regularTotalWeekWorkHours = totalWeekWorkMinutes(regularWeekDaysMinutes)
@@ -119,7 +120,8 @@
             dailyCheckingsByWeek[weekNumber]['weekdays'] = {}
         }
         dailyCheckingsByWeek[weekNumber]['weekdays'][weekDay] = checkingTime
-        const workedWeekMinutes = totalWeekWorkMinutes(dailyCheckingsByWeek[weekNumber])
+
+        const workedWeekMinutes = totalWeekWorkMinutes(dailyCheckingsByWeek[weekNumber]['weekdays'])
         const expectedWorkMinutes = expectedTotalWorkMinutes(dailyCheckingsByWeek[weekNumber])
         dailyCheckingsByWeek[weekNumber]['workedWeekMinutes'] = workedWeekMinutes
         dailyCheckingsByWeek[weekNumber]['expectedWorkMinutes'] = expectedWorkMinutes
